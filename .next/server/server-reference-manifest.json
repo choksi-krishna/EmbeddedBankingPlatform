@@ -2,72 +2,92 @@
   "node": {
     "00f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae": {
       "workers": {
+        "app/(auth)/login/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
         "app/(dashboard)/dashboard/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         },
-        "app/(auth)/login/page": {
+        "app/(auth)/signup/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         }
       },
       "layer": {
+        "app/(auth)/login/page": "action-browser",
         "app/(dashboard)/dashboard/page": "rsc",
-        "app/(auth)/login/page": "rsc"
+        "app/(auth)/signup/page": "rsc"
       },
       "filename": "app/(auth)/actions.ts",
       "exportedName": "logoutAction"
     },
     "4026601967eba0399aad368efcd5afda4aeff547de": {
       "workers": {
+        "app/(auth)/login/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
         "app/(dashboard)/dashboard/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         },
-        "app/(auth)/login/page": {
+        "app/(auth)/signup/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         }
       },
       "layer": {
+        "app/(auth)/login/page": "action-browser",
         "app/(dashboard)/dashboard/page": "rsc",
-        "app/(auth)/login/page": "rsc"
+        "app/(auth)/signup/page": "rsc"
       },
       "filename": "app/(auth)/actions.ts",
       "exportedName": "magicLinkAction"
     },
     "405913c2346cdf8448ab7319d4a00bab0d5cbbf682": {
       "workers": {
+        "app/(auth)/login/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
         "app/(dashboard)/dashboard/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         },
-        "app/(auth)/login/page": {
+        "app/(auth)/signup/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         }
       },
       "layer": {
+        "app/(auth)/login/page": "action-browser",
         "app/(dashboard)/dashboard/page": "rsc",
-        "app/(auth)/login/page": "rsc"
+        "app/(auth)/signup/page": "rsc"
       },
       "filename": "app/(auth)/actions.ts",
       "exportedName": "loginAction"
     },
     "407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5": {
       "workers": {
+        "app/(auth)/login/page": {
+          "moduleId": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=true!",
+          "async": false
+        },
         "app/(dashboard)/dashboard/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         },
-        "app/(auth)/login/page": {
+        "app/(auth)/signup/page": {
           "moduleId": "(rsc)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22%2Fhome%2Fbacancy%2FWork%2Fembedded-baas-platform%2Fapp%2F(auth)%2Factions.ts%22%2C%5B%7B%22id%22%3A%2200f6cb0b8a2d1e97631103fcca5ebd93ccc33b88ae%22%2C%22exportedName%22%3A%22logoutAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%224026601967eba0399aad368efcd5afda4aeff547de%22%2C%22exportedName%22%3A%22magicLinkAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22405913c2346cdf8448ab7319d4a00bab0d5cbbf682%22%2C%22exportedName%22%3A%22loginAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%2C%7B%22id%22%3A%22407a67058c47ffb0b694e3fe817eb072ee7a8fd4f5%22%2C%22exportedName%22%3A%22signupAction%22%2C%22filename%22%3A%22app%2F(auth)%2Factions.ts%22%7D%5D%5D%5D&__client_imported__=!",
           "async": false
         }
       },
       "layer": {
+        "app/(auth)/login/page": "action-browser",
         "app/(dashboard)/dashboard/page": "rsc",
-        "app/(auth)/login/page": "rsc"
+        "app/(auth)/signup/page": "rsc"
       },
       "filename": "app/(auth)/actions.ts",
       "exportedName": "signupAction"

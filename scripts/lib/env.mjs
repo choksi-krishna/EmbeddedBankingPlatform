@@ -44,3 +44,16 @@ export function requireEnv(name) {
   }
   return value;
 }
+
+export function requireAnyEnv(names) {
+  for (const name of names) {
+    const value = process.env[name];
+    if (value) {
+      return value;
+    }
+  }
+
+  throw new Error(
+    `Missing required environment variable. Set one of: ${names.join(", ")}`,
+  );
+}

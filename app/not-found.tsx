@@ -13,7 +13,7 @@ export default function NotFound() {
           That route does not exist in this workspace.
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-          Use the normalized dashboard routes or return to the platform landing page.
+          Return to the platform homepage or head back into your workspace.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link

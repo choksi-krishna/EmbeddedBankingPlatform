@@ -1,4 +1,11 @@
+import { cache } from "react";
+import { cookies } from "next/headers";
+
 import { isSupabaseConfigured } from "@/lib/env";
+import {
+  canUseLocalDemoAuth,
+  LOCAL_DEMO_SESSION_COOKIE,
+} from "@/lib/local-auth";
 import { getMockDb } from "@/lib/mock-store";
 import {
   createApiKeyMaterial,
@@ -8,6 +15,7 @@ import {
   signWebhookPayload,
 } from "@/lib/security";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { isSupabaseServiceUnavailableError } from "@/lib/supabase/errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   Account,
@@ -87,6 +95,17 @@ function sanitizeApiKey(apiKey: ApiKey) {
 function sanitizeWebhook(webhook: Webhook) {
   const { signingSecret, ...safeWebhook } = webhook;
   return safeWebhook;
+}
+
+async function runAdminMutation(
+  promise: Promise<{ error: { message: string } | null }>,
+  context: string,
+) {
+  const { error } = await promise;
+
+  if (error) {
+    throw new Error(`${context}: ${error.message}`);
+  }
 }
 
 function computeAnalytics(
@@ -421,53 +440,70 @@ async function emitWebhookEvent(
   );
 }
 
-export async function getViewer(): Promise<ViewerContext | null> {
+export const getViewer = cache(async (): Promise<ViewerContext | null> => {
+  const cookieStore = await cookies();
+  const localDemoSession =
+    canUseLocalDemoAuth() &&
+    cookieStore.get(LOCAL_DEMO_SESSION_COOKIE)?.value === "mock";
+
+  if (localDemoSession) {
+    return pickMockViewer();
+  }
+
   if (!isSupabaseConfigured) {
     return pickMockViewer();
   }
 
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return null;
-  }
+    if (!user) {
+      return null;
+    }
 
-  const { data: profile } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
+    const { data: profile } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  if (!profile) {
+    if (!profile) {
+      return {
+        mode: "supabase",
+        authMethod: "session",
+        userId: user.id,
+        partnerId: null,
+        role: "viewer",
+        email: user.email ?? "",
+        fullName:
+          (user.user_metadata.full_name as string | undefined) ??
+          user.email?.split("@")[0] ??
+          "User",
+      };
+    }
+
+    const mapped = mapUserRow(profile as Record<string, any>);
+
     return {
       mode: "supabase",
       authMethod: "session",
-      userId: user.id,
-      partnerId: null,
-      role: "viewer",
-      email: user.email ?? "",
-      fullName:
-        (user.user_metadata.full_name as string | undefined) ??
-        user.email?.split("@")[0] ??
-        "User",
+      userId: mapped.id,
+      partnerId: mapped.partnerId,
+      role: mapped.role,
+      email: mapped.email,
+      fullName: mapped.fullName,
     };
+  } catch (error) {
+    if (canUseLocalDemoAuth() && isSupabaseServiceUnavailableError(error)) {
+      return pickMockViewer();
+    }
+
+    throw error;
   }
-
-  const mapped = mapUserRow(profile as Record<string, any>);
-
-  return {
-    mode: "supabase",
-    authMethod: "session",
-    userId: mapped.id,
-    partnerId: mapped.partnerId,
-    role: mapped.role,
-    email: mapped.email,
-    fullName: mapped.fullName,
-  };
-}
+});
 
 export async function bootstrapPartnerWorkspace(
   userId: string,
@@ -487,70 +523,88 @@ export async function bootstrapPartnerWorkspace(
   const partnerId = generateId("partner");
   const accountId = generateId("acct");
 
-  await admin.from("partners").insert({
-    id: partnerId,
-    name: companyName,
-    slug: slugify(companyName),
-    status: "onboarding",
-    tier: "starter",
-    settings: {
-      allowedWebhookEvents: [
-        "account.created",
-        "transfer.settled",
-        "card.issued",
-        "kyc.updated",
-      ],
-      region: "US",
-      riskProfile: "moderate",
-    },
-  });
+  await runAdminMutation(
+    admin.from("partners").insert({
+      id: partnerId,
+      name: companyName,
+      slug: slugify(companyName),
+      status: "onboarding",
+      tier: "starter",
+      settings: {
+        allowedWebhookEvents: [
+          "account.created",
+          "transfer.settled",
+          "card.issued",
+          "kyc.updated",
+        ],
+        region: "US",
+        riskProfile: "moderate",
+      },
+    }),
+    "Unable to create the partner workspace",
+  );
 
-  await admin.from("users").upsert({
-    id: userId,
-    partner_id: partnerId,
-    email,
-    full_name: fullName,
-    role: "partner_admin",
-    status: "active",
-  });
+  await runAdminMutation(
+    admin.from("users").upsert({
+      id: userId,
+      partner_id: partnerId,
+      email,
+      full_name: fullName,
+      role: "partner_admin",
+      status: "active",
+    }),
+    "Unable to create the partner admin profile",
+  );
 
-  await admin.from("accounts").insert({
-    id: accountId,
-    partner_id: partnerId,
-    user_id: userId,
-    account_number: `${Math.floor(100000000000 + Math.random() * 899999999999)}`,
-    routing_number: "011000015",
-    type: "operating",
-    status: "pending",
-    nickname: "Primary Operating",
-    currency: "USD",
-  });
+  await runAdminMutation(
+    admin.from("accounts").insert({
+      id: accountId,
+      partner_id: partnerId,
+      user_id: userId,
+      account_number: `${Math.floor(100000000000 + Math.random() * 899999999999)}`,
+      routing_number: "011000015",
+      type: "operating",
+      status: "pending",
+      nickname: "Primary Operating",
+      currency: "USD",
+    }),
+    "Unable to create the operating account",
+  );
 
-  await admin
-    .from("partners")
-    .update({ settlement_account_id: accountId })
-    .eq("id", partnerId);
+  await runAdminMutation(
+    admin
+      .from("partners")
+      .update({ settlement_account_id: accountId })
+      .eq("id", partnerId),
+    "Unable to link the settlement account",
+  );
 
-  await admin.from("balances").insert({
-    id: generateId("bal"),
-    partner_id: partnerId,
-    account_id: accountId,
-    available: 0,
-    pending: 0,
-    ledger: 0,
-    currency: "USD",
-  });
+  await runAdminMutation(
+    admin.from("balances").insert({
+      id: generateId("bal"),
+      partner_id: partnerId,
+      account_id: accountId,
+      available: 0,
+      pending: 0,
+      ledger: 0,
+      currency: "USD",
+    }),
+    "Unable to create the opening balance",
+  );
 
-  await admin.from("compliance_records").insert({
-    id: generateId("comp"),
-    partner_id: partnerId,
-    user_id: userId,
-    account_id: accountId,
-    type: "kyc",
-    status: "monitor",
-    risk_score: 35,
-    notes: "Auto-created compliance baseline during onboarding.",
-  });
+  await runAdminMutation(
+    admin.from("compliance_records").insert({
+      id: generateId("comp"),
+      partner_id: partnerId,
+      user_id: userId,
+      account_id: accountId,
+      type: "kyc",
+      status: "monitor",
+      risk_score: 35,
+      notes: "Auto-created compliance baseline during onboarding.",
+    }),
+    "Unable to create the compliance baseline",
+  );
 
   return partnerId;
 }
@@ -571,25 +625,31 @@ export async function joinPartnerWorkspace(
   }
 
   const normalizedPartnerCode = partnerCode.trim().toLowerCase();
-  const { data: partner } = await admin
+  const { data: partner, error } = await admin
     .from("partners")
     .select("*")
     .or(`id.eq.${normalizedPartnerCode},slug.eq.${normalizedPartnerCode}`)
     .maybeSingle();
 
+  if (error) {
+    throw new Error(`Unable to look up the partner workspace: ${error.message}`);
+  }
+
   if (!partner) {
     throw new Error("Invalid partner code. Use a valid partner ID or slug.");
   }
 
-  await admin.from("users").upsert({
-    id: userId,
-    partner_id: partner.id,
-    email,
-    full_name: fullName,
-    role: "operator",
-    status: "active",
-    kyc_status: "pending",
-  });
+  await runAdminMutation(
+    admin.from("users").upsert({
+      id: userId,
+      partner_id: partner.id,
+      email,
+      full_name: fullName,
+      role: "operator",
+      status: "active",
+    }),
+    "Unable to attach the user to the partner workspace",
+  );
 
   return partner.id as string;
 }
@@ -1014,15 +1074,24 @@ export async function listWebhooks(viewer: ViewerContext) {
   return asRows(data).map(mapWebhookRow).map(sanitizeWebhook);
 }
 
-export async function listNotifications(viewer: ViewerContext) {
+export async function listNotifications(
+  viewer: ViewerContext,
+  options: {
+    limit?: number;
+  } = {},
+) {
   if (!isSupabaseConfigured) {
     const db = getMockDb();
-    return sortByDate(
+    const notifications = sortByDate(
       db.notifications.filter((notification) =>
         isScopedToPartner(viewer, notification.partnerId),
       ),
       (row) => row.createdAt,
     );
+
+    return typeof options.limit === "number"
+      ? notifications.slice(0, options.limit)
+      : notifications;
   }
 
   const client = await getDataClient(viewer);
@@ -1035,6 +1104,9 @@ export async function listNotifications(viewer: ViewerContext) {
     .order("created_at", { ascending: false });
   if (viewer.role !== "platform_admin" && viewer.partnerId) {
     query = query.eq("partner_id", viewer.partnerId);
+  }
+  if (typeof options.limit === "number") {
+    query = query.limit(options.limit);
   }
   const { data = [] } = await query;
   return asRows(data).map(mapNotificationRow);
@@ -1067,7 +1139,6 @@ export async function getDashboardSnapshot(
     apiKeys,
     webhooks,
     notifications,
-    analytics,
   ] = await Promise.all([
     listPartners(viewer),
     listUsers(viewer),
@@ -1079,9 +1150,16 @@ export async function getDashboardSnapshot(
     listComplianceRecords(viewer),
     listApiKeys(viewer),
     listWebhooks(viewer),
-    listNotifications(viewer),
-    getAnalytics(viewer),
+    listNotifications(viewer, { limit: 4 }),
   ]);
+
+  const analytics = computeAnalytics(
+    accounts,
+    transactions,
+    cards,
+    documents,
+    compliance,
+  );
 
   const partner =
     viewer.role === "platform_admin"
@@ -1092,7 +1170,7 @@ export async function getDashboardSnapshot(
     partner,
     users,
     accounts,
-    transactions,
+    transactions: transactions.slice(0, 5),
     transfers,
     cards,
     documents,

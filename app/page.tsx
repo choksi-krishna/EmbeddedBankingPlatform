@@ -17,7 +17,7 @@ export default async function HomePage() {
   const viewer = await getViewer();
   const isAuthenticated = isSupabaseConfigured && Boolean(viewer);
   const isMockMode = !isSupabaseConfigured;
-  const routeCards = [
+  const featureCards = [
     {
       href: "/dashboard/accounts",
       title: "Accounts",
@@ -36,7 +36,7 @@ export default async function HomePage() {
     {
       href: "/dashboard/compliance",
       title: "Compliance",
-      copy: "Keep KYC, AML, and restricted records in a route that risk teams can actually use.",
+      copy: "Keep KYC, AML, and restricted records in a workspace that risk teams can actually use.",
     },
     {
       href: "/dashboard/api-keys",
@@ -52,7 +52,7 @@ export default async function HomePage() {
   const operatorFlows = [
     "Review balances and account posture before moving money.",
     "Initiate transfers, then confirm ledger and webhook delivery in context.",
-    "Handle KYC and compliance queues without switching into unrelated routes.",
+    "Handle KYC and compliance queues without leaving the workspace.",
   ];
 
   return (
@@ -115,12 +115,11 @@ export default async function HomePage() {
             <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_260px]">
               <div className="space-y-6">
                 <h1 className="max-w-4xl font-display text-5xl font-semibold leading-[0.94] text-ink md:text-6xl xl:text-7xl">
-                  Embedded banking that is easier to operate and easier to navigate.
+                  Embedded banking for teams that need control, visibility, and speed.
                 </h1>
                 <p className="max-w-3xl text-lg leading-8 text-slate-600">
-                  Accounts, transfers, cards, KYC, compliance, webhooks, and partner
-                  management now flow through one clearer dashboard structure without
-                  scattering core product routes across the app.
+                  Run accounts, transfers, cards, KYC, compliance, webhooks, and
+                  partner operations from one workspace built for daily banking work.
                 </p>
 
                 {isAuthenticated ? (
@@ -130,8 +129,8 @@ export default async function HomePage() {
                     </p>
                     <p className="mt-3 text-lg font-semibold text-ink">{viewer?.email}</p>
                     <p className="mt-2 text-sm leading-6 text-slate-600">
-                      Your session is live. Head straight into the workspace and continue
-                      from the normalized dashboard routes.
+                      Your session is live. Head straight into the workspace and pick
+                      up where you left off.
                     </p>
                   </Card>
                 ) : null}
@@ -157,28 +156,28 @@ export default async function HomePage() {
               <div className="space-y-3">
                 <div className="rounded-[28px] bg-ink px-5 py-6 text-white shadow-[0_28px_70px_rgba(9,17,31,0.24)]">
                   <p className="text-xs uppercase tracking-[0.26em] text-white/55">
-                    Route model
+                    Workspace at a glance
                   </p>
                   <p className="mt-3 font-display text-3xl font-semibold">
-                    /dashboard/*
+                    Built for operators
                   </p>
                   <p className="mt-3 text-sm leading-6 text-white/72">
-                    Overview, money movement, risk, developer access, and admin now live
-                    under one coherent workspace path.
+                    Monitor activity, move money, review risk, and manage
+                    integrations without switching tools.
                   </p>
                 </div>
                 {[
                   {
                     label: "Accounts",
-                    value: "/dashboard/accounts",
+                    value: "Balances, provisioning, and ownership",
                   },
                   {
                     label: "Transfers",
-                    value: "/dashboard/transactions",
+                    value: "Payments, ledger activity, and settlement",
                   },
                   {
                     label: "Compliance",
-                    value: "/dashboard/compliance",
+                    value: "KYC review, monitoring, and controls",
                   },
                 ].map((item) => (
                   <div
@@ -188,7 +187,7 @@ export default async function HomePage() {
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
                       {item.label}
                     </p>
-                    <p className="mt-2 font-mono text-sm text-ink">{item.value}</p>
+                    <p className="mt-2 text-sm text-ink">{item.value}</p>
                   </div>
                 ))}
               </div>
@@ -225,33 +224,33 @@ export default async function HomePage() {
       </section>
 
       <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {routeCards.map((item) => (
+        {featureCards.map((item) => (
           <Link key={item.href} href={item.href}>
             <Card className="h-full transition hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(17,24,39,0.12)]">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-                Workspace route
+                Product area
               </p>
               <h2 className="mt-3 font-display text-3xl font-semibold text-ink">
                 {item.title}
               </h2>
               <p className="mt-3 text-sm leading-6 text-slate-600">{item.copy}</p>
-              <p className="mt-6 text-sm font-semibold text-tide">Open route</p>
+              <p className="mt-6 text-sm font-semibold text-tide">Open workspace</p>
             </Card>
           </Link>
         ))}
       </section>
 
       <section className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-        <Card eyebrow="What Changed" title="The UI now follows the product map">
+        <Card eyebrow="Why Teams Use It" title="A banking workspace that stays operational">
           <div className="space-y-4 text-sm leading-7 text-slate-600">
             <p>
-              The app no longer asks users to remember whether a page lives at the root or
-              inside the dashboard. The operational experience is organized around one entry
-              point and one route family.
+              Treasury, risk, and platform teams need the same thing from software:
+              reliable access to the data and actions that matter every day.
             </p>
             <p>
-              That matters more than aesthetics alone: routing is now easier to teach,
-              easier to bookmark, and easier to extend with future nested views.
+              This workspace keeps the core operational jobs close together so teams
+              can review balances, move funds, monitor risk, and manage integrations
+              without friction.
             </p>
           </div>
         </Card>

@@ -2,6 +2,9 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { env, isSupabaseConfigured } from "@/lib/env";
+import { canUseLocalDemoAuth, hasLocalDemoSession } from "@/lib/local-auth";
+import { isSupabaseServiceUnavailableError } from "@/lib/supabase/errors";
+import { buildRequestUrl } from "@/lib/url";
 
 export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -29,6 +32,17 @@ export async function updateSession(request: NextRequest) {
       headers: request.headers,
     },
   });
+
+  const localDemoSession =
+    canUseLocalDemoAuth() && hasLocalDemoSession(request);
+
+  if (localDemoSession) {
+    if (isAuthRoute) {
+      return NextResponse.redirect(buildRequestUrl(request, "/dashboard"));
+    }
+
+    return response;
+  }
 
   if (!isSupabaseConfigured) {
     return response;
@@ -62,21 +76,28 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+
+  try {
+    const authResult = await supabase.auth.getUser();
+    user = authResult.data.user;
+  } catch (error) {
+    if (canUseLocalDemoAuth() && isSupabaseServiceUnavailableError(error)) {
+      return response;
+    }
+
+    throw error;
+  }
 
   if (!user && isProtectedPage) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    redirectUrl.searchParams.set("next", pathname);
+    const redirectUrl = buildRequestUrl(request, "/login", {
+      next: pathname,
+    });
     return NextResponse.redirect(redirectUrl);
   }
 
   if (user && isAuthRoute) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
-    redirectUrl.search = "";
+    const redirectUrl = buildRequestUrl(request, "/dashboard");
     return NextResponse.redirect(redirectUrl);
   }
 

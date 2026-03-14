@@ -3,7 +3,6 @@ import Link from "next/link";
 import { SubmitButton } from "@/components/forms/submit-button";
 import { Card } from "@/components/ui/card";
 import { isSupabaseConfigured } from "@/lib/env";
-import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated";
 
 import { signupAction } from "../actions";
 
@@ -14,8 +13,6 @@ export default async function SignupPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await redirectIfAuthenticated();
-
   const params = await searchParams;
   const error =
     typeof params.error === "string" ? decodeURIComponent(params.error) : null;
@@ -54,12 +51,11 @@ export default async function SignupPage({
             Onboarding
           </p>
           <h1 className="max-w-3xl font-display text-5xl font-semibold leading-[0.96] text-ink">
-            Launch a partner banking workspace with a cleaner operator flow.
+            Launch a partner banking workspace for your team.
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-slate-600">
-            Signup provisions a partner tenant and sends operators into the normalized
-            dashboard workspace, where accounts, transfers, risk, and integrations are
-            organized in one consistent route tree.
+            Create your workspace to manage accounts, transfers, cards,
+            compliance, and integrations in one place.
           </p>
           {!isSupabaseConfigured ? (
             <Card className="max-w-2xl">
@@ -91,6 +87,9 @@ export default async function SignupPage({
               Work Email
             </label>
             <input className="field" id="email" name="email" type="email" required />
+            <p className="mt-2 text-xs leading-5 text-slate-500">
+              Use the login screen if this email already has workspace access.
+            </p>
           </div>
           <div>
             <label className="label" htmlFor="password">

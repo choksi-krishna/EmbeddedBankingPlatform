@@ -1,11 +1,8 @@
 import Link from "next/link";
 
-import { SubmitButton } from "@/components/forms/submit-button";
+import { LoginAccessPanels } from "@/components/auth/login-access-panels";
 import { Card } from "@/components/ui/card";
 import { isSupabaseConfigured } from "@/lib/env";
-import { redirectIfAuthenticated } from "@/lib/redirect-if-authenticated";
-
-import { loginAction, magicLinkAction } from "../actions";
 
 export const dynamic = "force-dynamic";
 
@@ -14,13 +11,15 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  await redirectIfAuthenticated();
-
   const params = await searchParams;
   const error =
     typeof params.error === "string" ? decodeURIComponent(params.error) : null;
   const message =
     typeof params.message === "string" ? decodeURIComponent(params.message) : null;
+  const prefilledEmail =
+    typeof params.email === "string" ? decodeURIComponent(params.email) : "";
+  const defaultTab =
+    params.tab === "magic-link" && isSupabaseConfigured ? "magic-link" : "password";
 
   return (
     <main className="mx-auto grid w-full max-w-[1600px] gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_480px] lg:px-8 2xl:px-10">
@@ -59,17 +58,16 @@ export default async function LoginPage({
             Sign in to your banking workspace.
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-slate-600">
-            Accounts, transfers, cards, compliance, and developer access now sit under
-            one clearer dashboard path, so the product is easier to move through once
-            you are signed in.
+            Access your accounts, transfers, cards, compliance reviews, and
+            developer tools from a single secure workspace.
           </p>
 
           {!isSupabaseConfigured ? (
             <Card className="max-w-2xl">
               <p className="text-sm leading-6 text-slate-600">
                 Backend environment variables are not configured. The app will run in
-                sandbox mode with seeded tenant data, so you can still open the
-                workspace and validate the route flow locally.
+                sandbox mode with seeded tenant data, so you can still explore the
+                workspace locally.
               </p>
             </Card>
           ) : null}
@@ -77,55 +75,13 @@ export default async function LoginPage({
       </div>
 
       <Card title="Login" eyebrow="Auth">
-        <form action={loginAction} className="space-y-4">
-          <div>
-            <label className="label" htmlFor="email">
-              Email
-            </label>
-            <input className="field" id="email" name="email" type="email" required />
-          </div>
-          <div>
-            <label className="label" htmlFor="password">
-              Password
-            </label>
-            <input
-              className="field"
-              id="password"
-              name="password"
-              type="password"
-              required
-            />
-          </div>
-          {error ? <p className="text-sm text-rose-700">{error}</p> : null}
-          {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
-          <SubmitButton label="Sign In" pendingLabel="Signing in..." className="w-full" />
-        </form>
-        {isSupabaseConfigured ? (
-          <div className="mt-4 border-t border-slate-200 pt-4">
-            <p className="text-sm text-slate-500">
-              Prefer passwordless access? Request a magic link instead.
-            </p>
-            <form action={magicLinkAction} className="mt-4 space-y-4">
-              <div>
-                <label className="label" htmlFor="magicLinkEmail">
-                  Magic Link Email
-                </label>
-                <input
-                  className="field"
-                  id="magicLinkEmail"
-                  name="email"
-                  type="email"
-                  required
-                />
-              </div>
-              <SubmitButton
-                label="Send Magic Link"
-                pendingLabel="Sending..."
-                className="w-full"
-              />
-            </form>
-          </div>
-        ) : null}
+        <LoginAccessPanels
+          defaultTab={defaultTab}
+          prefilledEmail={prefilledEmail}
+          error={error}
+          message={message}
+          magicLinkEnabled={isSupabaseConfigured}
+        />
         <p className="mt-4 text-sm text-slate-500">
           Need a workspace?{" "}
           <Link href="/signup" className="font-semibold text-ink">

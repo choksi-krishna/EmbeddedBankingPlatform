@@ -12,9 +12,16 @@ import { formatDate, formatMoney, maskAccount } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const viewer = await requireViewer();
+  const params = await searchParams;
   const snapshot = await getDashboardSnapshot(viewer);
+  const message =
+    typeof params.message === "string" ? decodeURIComponent(params.message) : null;
   const partnerName = snapshot.partner?.name ?? "Platform-wide view";
   const partnerTier = snapshot.partner?.tier ?? "enterprise";
   const platformCoverage = [
@@ -74,6 +81,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6 xl:space-y-8">
+      {message ? (
+        <div className="rounded-[24px] border border-amber-200 bg-amber-50 px-5 py-4 text-sm leading-6 text-amber-900">
+          {message}
+        </div>
+      ) : null}
       <div className="grid gap-6 xl:grid-cols-12">
         <Card className="relative overflow-hidden xl:col-span-8">
           <div className="absolute inset-y-0 right-0 w-40 bg-[radial-gradient(circle_at_center,rgba(217,119,6,0.16),transparent_68%)]" />
@@ -91,6 +103,7 @@ export default async function DashboardPage() {
                     <Link
                       key={module.href}
                       href={module.href}
+                      prefetch
                       className="rounded-[24px] border border-[rgba(17,24,39,0.08)] bg-white/75 px-4 py-4 transition hover:-translate-y-0.5 hover:bg-white"
                     >
                       <p className="text-sm font-semibold text-ink">{module.label}</p>
@@ -352,7 +365,7 @@ export default async function DashboardPage() {
             </div>
             <div className="rounded-[28px] bg-mist px-4 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                Developer routes
+                Developer APIs
               </p>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 `/api/auth`, `/api/users`, `/api/accounts`, `/api/transactions`,

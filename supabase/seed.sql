@@ -84,6 +84,14 @@ insert into public.balances (
 )
 on conflict (id) do nothing;
 
+with seed_api_key as (
+  select
+    'api-6001'::text as id,
+    'partner-orbit'::text as partner_id,
+    'Orbit Sandbox SDK'::text as name,
+    'baas.orbitdemo01.secret123'::text as raw_key,
+    array['accounts:read','transactions:read','transfers:write','webhooks:read']::text[] as permissions
+)
 insert into public.api_keys (
   id,
   partner_id,
@@ -91,14 +99,22 @@ insert into public.api_keys (
   prefix,
   key_hash,
   permissions,
-  status
-) values (
-  'api-6001',
-  'partner-orbit',
-  'Orbit Sandbox SDK',
-  'orbitdemo01',
-  '70846dc7c58f4d9ffb4af3ebf995709fc72fc2300a9bcf5d6905e2dfe7cc03b4',
-  array['accounts:read','transactions:read','transfers:write','webhooks:read'],
-  'active'
+  status,
+  metadata
 )
+select
+  seed_api_key.id,
+  seed_api_key.partner_id,
+  seed_api_key.name,
+  split_part(seed_api_key.raw_key, '.', 2),
+  encode(digest(seed_api_key.raw_key, 'sha256'), 'hex'),
+  seed_api_key.permissions,
+  'active',
+  jsonb_build_object(
+    'seeded_from',
+    'sql',
+    'seeded_by',
+    'supabase/seed.sql'
+  )
+from seed_api_key
 on conflict (id) do nothing;

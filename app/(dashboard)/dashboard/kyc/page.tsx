@@ -23,7 +23,7 @@ export default async function KycPage() {
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.35fr)_420px]">
         <DashboardHeader
           title="KYC Verification"
-          description="Upload identity and business formation documents, then route them into the compliance review queue."
+          description="Upload identity and business formation documents, then send them into the compliance review queue."
         />
 
         <Card>

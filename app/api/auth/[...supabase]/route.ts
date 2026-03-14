@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buildRequestUrl } from "@/lib/url";
 
 export async function GET(request: NextRequest) {
-  const requestUrl = new URL(request.url);
+  const requestUrl = request.nextUrl;
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/dashboard";
 
   if (!code) {
-    return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent("Missing auth code.")}`, request.url));
+    return NextResponse.redirect(
+      buildRequestUrl(request, "/login", {
+        error: "Missing auth code.",
+      }),
+    );
   }
 
   const supabase = await createSupabaseServerClient();
@@ -16,9 +21,11 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     return NextResponse.redirect(
-      new URL(`/login?error=${encodeURIComponent(error.message)}`, request.url),
+      buildRequestUrl(request, "/login", {
+        error: error.message,
+      }),
     );
   }
 
-  return NextResponse.redirect(new URL(next, request.url));
+  return NextResponse.redirect(buildRequestUrl(request, next));
 }

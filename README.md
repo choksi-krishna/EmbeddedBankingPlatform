@@ -15,7 +15,7 @@ Full-stack embedded banking prototype built with Next.js App Router, TypeScript,
 ## Local setup
 
 1. Copy [.env.example](/home/bacancy/Work/embedded-baas-platform/.env.example) to `.env.local`.
-2. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+2. Set `NEXT_PUBLIC_SUPABASE_URL` and either `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 3. Set `DATABASE_URL` if you want to apply the SQL migration with `npm run db:migrate`.
 4. Set `SUPABASE_SERVICE_ROLE_KEY` if you want partner bootstrapping, invitations, KYC uploads, or `npm run db:seed`.
 5. Run `npm run db:migrate` to apply [supabase/migrations/0001_init.sql](/home/bacancy/Work/embedded-baas-platform/supabase/migrations/0001_init.sql).
@@ -23,6 +23,7 @@ Full-stack embedded banking prototype built with Next.js App Router, TypeScript,
 7. Install dependencies and run `npm run dev`.
 
 If Supabase env vars are omitted, the platform loads seeded mock data and uses the sandbox API key `baas.orbitdemo01.secret123`.
+The JS seed script also supports `SEED_PARTNER_API_KEY`, `SEED_PARTNER_API_KEY_NAME`, and `SEED_PARTNER_API_KEY_PERMISSIONS` for the seeded partner API key record.
 
 ## Database commands
 

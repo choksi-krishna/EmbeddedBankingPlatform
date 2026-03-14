@@ -44,8 +44,8 @@ export default async function DashboardLayout({
                   Operator control room
                 </h1>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-                  Accounts, transfers, cards, compliance, analytics, and developer
-                  access now sit inside one consistent dashboard namespace.
+                  Track balances, move money, review compliance activity, and
+                  manage developer access from one workspace.
                 </p>
               </div>
 
@@ -84,6 +84,7 @@ export default async function DashboardLayout({
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch
                   className="rounded-full border border-[rgba(17,24,39,0.08)] bg-white/70 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-ink"
                 >
                   {item.label}

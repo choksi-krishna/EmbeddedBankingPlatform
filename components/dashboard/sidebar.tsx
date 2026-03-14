@@ -102,8 +102,8 @@ export function Sidebar({ viewer }: SidebarProps) {
           Console
         </h1>
         <p className="mt-3 max-w-xs text-sm leading-6 text-slate-500">
-          A clearer navigation model for partner operations, risk review, and
-          developer integrations.
+          Manage accounts, transfers, cards, compliance, and developer access
+          from one workspace.
         </p>
       </div>
 
@@ -138,6 +138,7 @@ export function Sidebar({ viewer }: SidebarProps) {
                   <Link
                     key={item.href}
                     href={item.href}
+                    prefetch
                     className={cn(
                       "rounded-[24px] border px-4 py-3 transition",
                       active
@@ -171,16 +172,6 @@ export function Sidebar({ viewer }: SidebarProps) {
             </nav>
           </div>
         ))}
-      </div>
-
-      <div className="rounded-[24px] border border-[rgba(17,24,39,0.08)] bg-white/72 px-4 py-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-          Route standard
-        </p>
-        <p className="mt-2 text-sm leading-6 text-slate-600">
-          Product areas now resolve under `/dashboard/*`, which makes the workspace
-          easier to navigate and easier to extend.
-        </p>
       </div>
     </aside>
   );
