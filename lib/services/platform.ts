@@ -57,6 +57,92 @@ function asRows(data: unknown): Record<string, any>[] {
   return Array.isArray(data) ? (data as Record<string, any>[]) : [];
 }
 
+function toLegacyTransferStatus(status?: string | null): TransferStatus {
+  if (status === "completed" || status === "reversed") {
+    return "settled";
+  }
+  if (status === "cancelled") {
+    return "failed";
+  }
+  if (status === "processing" || status === "failed" || status === "pending") {
+    return status;
+  }
+  return "settled";
+}
+
+function getAccountNickname(type?: string | null) {
+  switch (type) {
+    case "business":
+      return "Primary Operating";
+    case "savings":
+      return "Reserve Account";
+    case "checking":
+      return "Payroll Account";
+    default:
+      return "Treasury Account";
+  }
+}
+
+function getLegacyTransactionKind(row: Record<string, any>): TransactionKind {
+  if (row.kind) {
+    return row.kind;
+  }
+  if (row.type === "fee") {
+    return "fee";
+  }
+  if (row.metadata?.transfer_id) {
+    return "transfer";
+  }
+  if (row.type === "credit") {
+    return "deposit";
+  }
+  if (row.type === "reversal") {
+    return "transfer";
+  }
+  return "withdrawal";
+}
+
+function getLegacyDocumentStatus(status?: string | null) {
+  switch (status) {
+    case "verified":
+      return "approved";
+    case "under_review":
+      return "needs_review";
+    case "pending":
+    case "approved":
+    case "rejected":
+    case "needs_review":
+      return status;
+    default:
+      return "pending";
+  }
+}
+
+function getLegacyComplianceType(row: Record<string, any>): ComplianceRecord["type"] {
+  if (row.type) {
+    return row.type;
+  }
+
+  const action = String(row.action ?? "").toLowerCase();
+  if (action.includes("kyc")) {
+    return "kyc";
+  }
+  if (action.includes("aml")) {
+    return "aml";
+  }
+  return "transaction_monitoring";
+}
+
+function getLegacyComplianceStatus(row: Record<string, any>): ComplianceRecord["status"] {
+  const disposition = row.metadata?.disposition;
+  if (disposition === "clear" || disposition === "monitor" || disposition === "restricted") {
+    return disposition;
+  }
+  return Number(row.metadata?.risk_score ?? row.risk_score ?? 0) >= 70
+    ? "restricted"
+    : "clear";
+}
+
 function pickMockViewer(): ViewerContext {
   const db = getMockDb();
   const viewer = db.users.find((user) => user.id === "user-orbit-admin") ?? db.users[0];
@@ -105,6 +191,33 @@ async function runAdminMutation(
 
   if (error) {
     throw new Error(`${context}: ${error.message}`);
+  }
+}
+
+async function syncAuthUserClaims(
+  admin: any,
+  {
+    userId,
+    partnerId,
+    role,
+    kycStatus = "pending",
+  }: {
+    userId: string;
+    partnerId: string;
+    role: string;
+    kycStatus?: string;
+  },
+) {
+  const { error } = await admin.auth.admin.updateUserById(userId, {
+    app_metadata: {
+      partner_id: partnerId,
+      role,
+      kyc_status: kycStatus,
+    },
+  });
+
+  if (error) {
+    throw new Error(`Unable to sync auth claims: ${error.message}`);
   }
 }
 
@@ -172,18 +285,25 @@ function createNotification(
 }
 
 function mapPartnerRow(row: Record<string, any>): Partner {
+  const settings = row.settings ?? {};
+  const config = row.config ?? {};
+
   return {
     id: row.id,
     name: row.name,
-    slug: row.slug,
-    status: row.status,
+    slug: row.slug ?? slugify(row.name ?? "partner"),
+    status: row.status ?? (row.is_active === false ? "suspended" : "active"),
     tier: row.tier,
     createdAt: row.created_at,
-    settlementAccountId: row.settlement_account_id,
-    settings: row.settings ?? {
-      allowedWebhookEvents: [],
-      region: "US",
-      riskProfile: "moderate",
+    settlementAccountId: row.settlement_account_id ?? null,
+    settings: {
+      allowedWebhookEvents:
+        settings.allowedWebhookEvents ??
+        config.allowedWebhookEvents ??
+        config.allowed_features ??
+        [],
+      region: settings.region ?? config.region ?? "US",
+      riskProfile: settings.riskProfile ?? config.riskProfile ?? "moderate",
     },
   };
 }
@@ -195,7 +315,7 @@ function mapUserRow(row: Record<string, any>): User {
     email: row.email,
     fullName: row.full_name,
     role: row.role,
-    status: row.status,
+    status: row.status ?? "active",
     createdAt: row.created_at,
     lastSignInAt: row.last_sign_in_at,
   };
@@ -210,73 +330,84 @@ function mapAccountRow(row: Record<string, any>): Account {
     routingNumber: row.routing_number,
     type: row.type,
     status: row.status,
-    nickname: row.nickname,
+    nickname: row.nickname ?? getAccountNickname(row.type),
     currency: row.currency,
     createdAt: row.created_at,
   };
 }
 
 function mapBalanceRow(row: Record<string, any>): Balance {
+  const available = Number(row.available ?? 0);
+  const pending = Number(row.pending ?? 0);
+
   return {
     id: row.id,
-    partnerId: row.partner_id,
+    partnerId: row.partner_id ?? "",
     accountId: row.account_id,
-    available: Number(row.available),
-    pending: Number(row.pending),
-    ledger: Number(row.ledger),
+    available,
+    pending,
+    ledger: Number(row.ledger ?? available + pending),
     currency: row.currency,
     updatedAt: row.updated_at,
   };
 }
 
 function mapTransactionRow(row: Record<string, any>): Transaction {
+  const direction =
+    row.direction ?? (row.type === "credit" ? "credit" : "debit");
+  const counterparty =
+    row.counterparty ??
+    row.metadata?.counterparty ??
+    row.metadata?.merchant ??
+    "EmbeddyFi Network";
+
   return {
     id: row.id,
-    partnerId: row.partner_id,
+    partnerId: row.partner_id ?? row.metadata?.partner_id ?? "",
     accountId: row.account_id,
-    transferId: row.transfer_id,
-    direction: row.direction,
-    kind: row.kind,
+    transferId: row.transfer_id ?? row.metadata?.transfer_id ?? null,
+    direction,
+    kind: getLegacyTransactionKind(row),
     amount: Number(row.amount),
     currency: row.currency,
-    status: row.status,
+    status: toLegacyTransferStatus(row.status),
     description: row.description,
-    counterparty: row.counterparty,
+    counterparty,
     metadata: row.metadata ?? {},
     createdAt: row.created_at,
-    postedAt: row.posted_at,
+    postedAt: row.posted_at ?? row.created_at,
   };
 }
 
 function mapTransferRow(row: Record<string, any>): Transfer {
   return {
     id: row.id,
-    partnerId: row.partner_id,
-    sourceAccountId: row.source_account_id,
-    destinationAccountId: row.destination_account_id,
+    partnerId: row.partner_id ?? row.metadata?.partner_id ?? "",
+    sourceAccountId: row.source_account_id ?? row.from_account_id,
+    destinationAccountId: row.destination_account_id ?? row.to_account_id,
     amount: Number(row.amount),
     currency: row.currency,
-    rail: row.rail,
-    status: row.status,
-    externalReference: row.external_reference,
-    initiatedByUserId: row.initiated_by_user_id,
-    createdAt: row.created_at,
-    settledAt: row.settled_at,
+    rail: row.rail ?? (row.type === "internal" ? "book" : "ach"),
+    status: toLegacyTransferStatus(row.status),
+    externalReference: row.external_reference ?? row.metadata?.purpose ?? null,
+    initiatedByUserId: row.initiated_by_user_id ?? row.metadata?.initiated_by_user_id ?? "",
+    createdAt: row.created_at ?? row.initiated_at,
+    settledAt: row.settled_at ?? row.completed_at ?? null,
   };
 }
 
 function mapCardRow(row: Record<string, any>): Card {
   return {
     id: row.id,
-    partnerId: row.partner_id,
-    userId: row.user_id,
+    partnerId: row.partner_id ?? "",
+    userId: row.user_id ?? "",
     accountId: row.account_id,
-    cardholderName: row.cardholder_name,
-    brand: row.brand,
-    last4: row.last4,
+    cardholderName: row.cardholder_name ?? "Orbit Admin",
+    brand: row.brand ?? "Visa",
+    last4: row.last4 ?? row.card_number_last4,
     type: row.type,
     status: row.status,
-    spendingLimit: Number(row.spending_limit),
+    spendingLimit: Number(row.spending_limit ?? row.spending_limits?.daily_limit ?? 0),
     createdAt: row.created_at,
     metadata: row.metadata ?? {},
   };
@@ -285,31 +416,34 @@ function mapCardRow(row: Record<string, any>): Card {
 function mapDocumentRow(row: Record<string, any>): KycDocument {
   return {
     id: row.id,
-    partnerId: row.partner_id,
+    partnerId: row.partner_id ?? "",
     userId: row.user_id,
-    documentType: row.document_type,
-    fileName: row.file_name,
+    documentType: row.document_type ?? row.doc_type,
+    fileName:
+      row.file_name ??
+      row.storage_path?.split("/").pop() ??
+      `${row.doc_type ?? row.document_type ?? "document"}.pdf`,
     storagePath: row.storage_path,
-    status: row.status,
-    notes: row.notes,
-    uploadedAt: row.uploaded_at,
-    reviewedAt: row.reviewed_at,
-    reviewerUserId: row.reviewer_user_id,
+    status: getLegacyDocumentStatus(row.status),
+    notes: row.notes ?? row.rejection_reason ?? null,
+    uploadedAt: row.uploaded_at ?? row.submitted_at,
+    reviewedAt: row.reviewed_at ?? row.verified_at ?? null,
+    reviewerUserId: row.reviewer_user_id ?? null,
   };
 }
 
 function mapComplianceRow(row: Record<string, any>): ComplianceRecord {
   return {
     id: row.id,
-    partnerId: row.partner_id,
-    userId: row.user_id,
-    accountId: row.account_id,
-    type: row.type,
-    status: row.status,
-    riskScore: Number(row.risk_score),
+    partnerId: row.partner_id ?? "",
+    userId: row.user_id ?? (row.entity_type === "user" ? row.entity_id : null),
+    accountId: row.account_id ?? (row.entity_type === "account" ? row.entity_id : null),
+    type: getLegacyComplianceType(row),
+    status: getLegacyComplianceStatus(row),
+    riskScore: Number(row.risk_score ?? row.metadata?.risk_score ?? 0),
     notes: row.notes,
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    updatedAt: row.updated_at ?? row.created_at,
   };
 }
 
@@ -318,10 +452,10 @@ function mapApiKeyRow(row: Record<string, any>): ApiKey {
     id: row.id,
     partnerId: row.partner_id,
     name: row.name,
-    prefix: row.prefix,
+    prefix: row.prefix ?? row.metadata?.prefix ?? "key",
     keyHash: row.key_hash,
     permissions: row.permissions ?? [],
-    status: row.status,
+    status: row.status ?? (row.is_active === false ? "revoked" : "active"),
     createdAt: row.created_at,
     lastUsedAt: row.last_used_at,
   };
@@ -332,24 +466,32 @@ function mapWebhookRow(row: Record<string, any>): Webhook {
     id: row.id,
     partnerId: row.partner_id,
     url: row.url,
-    signingSecret: row.signing_secret,
+    signingSecret: row.signing_secret ?? row.secret_hash ?? "",
     events: row.events ?? [],
-    status: row.status,
+    status: row.status ?? (row.is_active === false ? "paused" : "active"),
     createdAt: row.created_at,
-    lastDeliveryAt: row.last_delivery_at,
+    lastDeliveryAt: row.last_delivery_at ?? row.last_triggered_at ?? null,
   };
 }
 
 function mapNotificationRow(row: Record<string, any>): Notification {
+  const severity =
+    row.severity ??
+    (row.type === "fraud_alert"
+      ? "critical"
+      : row.type === "card_freeze" || row.type === "kyc_update"
+        ? "warning"
+        : "info");
+
   return {
     id: row.id,
-    partnerId: row.partner_id,
+    partnerId: row.partner_id ?? "",
     type: row.type,
     title: row.title,
-    body: row.body,
-    severity: row.severity,
+    body: row.body ?? row.message,
+    severity,
     createdAt: row.created_at,
-    readAt: row.read_at,
+    readAt: row.read_at ?? (row.read ? row.created_at : null),
   };
 }
 
@@ -555,6 +697,12 @@ export async function bootstrapPartnerWorkspace(
     }),
     "Unable to create the partner admin profile",
   );
+  await syncAuthUserClaims(admin, {
+    userId,
+    partnerId,
+    role: "partner_admin",
+    kycStatus: "pending",
+  });
 
   await runAdminMutation(
     admin.from("accounts").insert({
@@ -650,6 +798,12 @@ export async function joinPartnerWorkspace(
     }),
     "Unable to attach the user to the partner workspace",
   );
+  await syncAuthUserClaims(admin, {
+    userId,
+    partnerId: partner.id as string,
+    role: "operator",
+    kycStatus: "pending",
+  });
 
   return partner.id as string;
 }
@@ -722,12 +876,11 @@ export async function listAccounts(viewer: ViewerContext): Promise<AccountWithBa
     .from("accounts")
     .select("*")
     .order("created_at", { ascending: false });
-  let balancesQuery = client.from("balances").select("*");
+  const balancesQuery = client.from("balances").select("*");
   let usersQuery = client.from("users").select("*");
 
   if (viewer.role !== "platform_admin" && viewer.partnerId) {
     accountsQuery = accountsQuery.eq("partner_id", viewer.partnerId);
-    balancesQuery = balancesQuery.eq("partner_id", viewer.partnerId);
     usersQuery = usersQuery.eq("partner_id", viewer.partnerId);
   }
 
@@ -908,17 +1061,8 @@ export async function listTransactions(
     .from("transactions")
     .select("*")
     .order("created_at", { ascending: false });
-  if (viewer.role !== "platform_admin" && viewer.partnerId) {
-    query = query.eq("partner_id", viewer.partnerId);
-  }
   if (filters.accountId) {
     query = query.eq("account_id", filters.accountId);
-  }
-  if (filters.status) {
-    query = query.eq("status", filters.status);
-  }
-  if (filters.type) {
-    query = query.eq("kind", filters.type);
   }
   if (filters.startDate) {
     query = query.gte("created_at", filters.startDate);
@@ -930,7 +1074,25 @@ export async function listTransactions(
     query = query.limit(filters.limit);
   }
   const { data = [] } = await query;
-  return asRows(data).map(mapTransactionRow);
+  const accountIds =
+    viewer.role === "platform_admin"
+      ? null
+      : new Set((await listAccounts(viewer)).map(({ account }) => account.id));
+
+  let transactions = asRows(data)
+    .map(mapTransactionRow)
+    .filter((transaction) =>
+      accountIds ? accountIds.has(transaction.accountId) : true,
+    );
+
+  if (filters.status) {
+    transactions = transactions.filter((transaction) => transaction.status === filters.status);
+  }
+  if (filters.type) {
+    transactions = transactions.filter((transaction) => transaction.kind === filters.type);
+  }
+
+  return typeof filters.limit === "number" ? transactions.slice(0, filters.limit) : transactions;
 }
 
 export async function getTransactionById(viewer: ViewerContext, transactionId: string) {
@@ -951,12 +1113,21 @@ export async function listTransfers(viewer: ViewerContext) {
   if (!client) {
     return [];
   }
-  let query = client.from("transfers").select("*").order("created_at", { ascending: false });
-  if (viewer.role !== "platform_admin" && viewer.partnerId) {
-    query = query.eq("partner_id", viewer.partnerId);
-  }
+  const query = client.from("transfers").select("*").order("initiated_at", { ascending: false });
   const { data = [] } = await query;
-  return asRows(data).map(mapTransferRow);
+  const accountIds =
+    viewer.role === "platform_admin"
+      ? null
+      : new Set((await listAccounts(viewer)).map(({ account }) => account.id));
+
+  return asRows(data)
+    .map(mapTransferRow)
+    .filter((transfer) =>
+      accountIds
+        ? accountIds.has(transfer.sourceAccountId) ||
+          accountIds.has(transfer.destinationAccountId)
+        : true,
+    );
 }
 
 export async function listCards(viewer: ViewerContext) {
@@ -972,12 +1143,27 @@ export async function listCards(viewer: ViewerContext) {
   if (!client) {
     return [];
   }
-  let query = client.from("cards").select("*").order("created_at", { ascending: false });
-  if (viewer.role !== "platform_admin" && viewer.partnerId) {
-    query = query.eq("partner_id", viewer.partnerId);
-  }
+  const query = client.from("cards").select("*").order("created_at", { ascending: false });
   const { data = [] } = await query;
-  return asRows(data).map(mapCardRow);
+  const accounts = await listAccounts(viewer);
+  const accountById = new Map(accounts.map(({ account, owner }) => [account.id, { account, owner }]));
+
+  return asRows(data)
+    .map(mapCardRow)
+    .filter((card) =>
+      viewer.role === "platform_admin" ? true : accountById.has(card.accountId),
+    )
+    .map((card) => {
+      const linked = accountById.get(card.accountId);
+      return linked
+        ? {
+            ...card,
+            partnerId: card.partnerId || linked.account.partnerId,
+            userId: card.userId || linked.account.userId,
+            cardholderName: card.cardholderName || linked.owner?.fullName || "Cardholder",
+          }
+        : card;
+    });
 }
 
 export async function listKycDocuments(viewer: ViewerContext) {
@@ -998,9 +1184,21 @@ export async function listKycDocuments(viewer: ViewerContext) {
   let query = client
     .from("kyc_documents")
     .select("*")
-    .order("uploaded_at", { ascending: false });
-  if (viewer.role !== "platform_admin" && viewer.partnerId) {
-    query = query.eq("partner_id", viewer.partnerId);
+    .order("submitted_at", { ascending: false });
+  if (viewer.role !== "platform_admin") {
+    const users = await listUsers(viewer);
+    const userIds = new Set(users.map((user) => user.id));
+    const { data = [] } = await query;
+    return asRows(data)
+      .map(mapDocumentRow)
+      .filter((document) => userIds.has(document.userId))
+      .map((document) => ({
+        ...document,
+        partnerId:
+          document.partnerId ||
+          users.find((user) => user.id === document.userId)?.partnerId ||
+          "",
+      }));
   }
   const { data = [] } = await query;
   return asRows(data).map(mapDocumentRow);
@@ -1021,15 +1219,30 @@ export async function listComplianceRecords(viewer: ViewerContext) {
   if (!client) {
     return [];
   }
-  let query = client
+  const query = client
     .from("compliance_records")
     .select("*")
     .order("created_at", { ascending: false });
-  if (viewer.role !== "platform_admin" && viewer.partnerId) {
-    query = query.eq("partner_id", viewer.partnerId);
-  }
   const { data = [] } = await query;
-  return asRows(data).map(mapComplianceRow);
+  if (viewer.role === "platform_admin") {
+    return asRows(data).map(mapComplianceRow);
+  }
+
+  const accounts = await listAccounts(viewer);
+  const users = await listUsers(viewer);
+  const accountIds = new Set(accounts.map(({ account }) => account.id));
+  const userIds = new Set(users.map((user) => user.id));
+
+  return asRows(data)
+    .map(mapComplianceRow)
+    .filter((record) =>
+      (record.accountId && accountIds.has(record.accountId)) ||
+      (record.userId && userIds.has(record.userId)),
+    )
+    .map((record) => ({
+      ...record,
+      partnerId: record.partnerId || viewer.partnerId || "",
+    }));
 }
 
 export async function listApiKeys(viewer: ViewerContext) {
@@ -1102,8 +1315,8 @@ export async function listNotifications(
     .from("notifications")
     .select("*")
     .order("created_at", { ascending: false });
-  if (viewer.role !== "platform_admin" && viewer.partnerId) {
-    query = query.eq("partner_id", viewer.partnerId);
+  if (viewer.role !== "platform_admin" && viewer.userId) {
+    query = query.eq("user_id", viewer.userId);
   }
   if (typeof options.limit === "number") {
     query = query.limit(options.limit);
@@ -1952,6 +2165,12 @@ export async function inviteUser(
     full_name: payload.fullName,
     role: payload.role,
     status: "invited",
+  });
+  await syncAuthUserClaims(admin, {
+    userId: invite.data.user.id,
+    partnerId: viewer.partnerId,
+    role: payload.role,
+    kycStatus: "pending",
   });
 
   const user: User = {
