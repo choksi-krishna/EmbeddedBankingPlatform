@@ -816,13 +816,16 @@ export async function listPartners(viewer: ViewerContext) {
       : db.partners.filter((partner) => partner.id === viewer.partnerId);
   }
 
-  const client = await getDataClient(viewer);
+  const client =
+    viewer.authMethod === "session"
+      ? await createSupabaseAdminClient()
+      : await getDataClient(viewer);
   if (!client) {
     return [];
   }
 
   let query = client.from("partners").select("*").order("created_at", { ascending: false });
-  if (viewer.role !== "platform_admin" && viewer.partnerId) {
+  if (viewer.authMethod === "api_key" && viewer.role !== "platform_admin" && viewer.partnerId) {
     query = query.eq("id", viewer.partnerId);
   }
   const { data = [] } = await query;

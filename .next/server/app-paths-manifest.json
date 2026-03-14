@@ -1,11 +1,7 @@
 {
   "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(auth)/signup/page": "app/(auth)/signup/page.js",
-  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js",
-  "/(dashboard)/dashboard/cards/page": "app/(dashboard)/dashboard/cards/page.js",
-  "/(dashboard)/dashboard/transactions/page": "app/(dashboard)/dashboard/transactions/page.js",
-  "/(dashboard)/dashboard/kyc/page": "app/(dashboard)/dashboard/kyc/page.js",
-  "/(dashboard)/dashboard/compliance/page": "app/(dashboard)/dashboard/compliance/page.js",
+  "/page": "app/page.js",
   "/(dashboard)/dashboard/analytics/page": "app/(dashboard)/dashboard/analytics/page.js",
-  "/(dashboard)/dashboard/partners/page": "app/(dashboard)/dashboard/partners/page.js"
+  "/(dashboard)/dashboard/partners/page": "app/(dashboard)/dashboard/partners/page.js",
+  "/(dashboard)/dashboard/page": "app/(dashboard)/dashboard/page.js"
 }
