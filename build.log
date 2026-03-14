@@ -1,0 +1,7 @@
+   ▲ Next.js 15.5.12
+   - Experiments (use with caution):
+     · serverActions
+
+   Creating an optimized production build ...
+
+> Build failed because of webpack errors
